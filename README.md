@@ -1,4 +1,4 @@
-Microsoft Sentinel All-In-One V3: Cost-Optimized Deployment
+# Microsoft Sentinel All-In-One V3: Cost-Optimized Deployment
 Microsoft Sentinel All-In-One V3 is a comprehensive solution that simplifies the deployment and configuration of Microsoft Sentinel while introducing advanced cost optimization features. This solution helps organizations effectively manage their security monitoring costs without compromising threat detection capabilities.
 Show Image
 Show Image
@@ -17,13 +17,13 @@ Entra ID Optimization: Fine-tune collection of high-volume logs like NonInteract
 Corelight Network Data Optimization: Configure different tiers for different types of network data based on security value
 Intelligent Data Collection Rules (DCRs): Filter data before ingestion to reduce costs
 
-Industry-Specific Configurations
+## Industry-Specific Configurations
 
 Industry Query Packs: Pre-built queries tailored to specific industries including Healthcare, Financial Services, Government, and more
 Tiering Recommendations: Industry-specific guidance for which data to place in each storage tier
 Customized Detection Rules: Security content aligned with industry-specific threats and compliance requirements
 
-Cost Monitoring Dashboard
+## Cost Monitoring Dashboard
 A specialized workbook provides visibility into your Sentinel costs:
 
 Ingestion Tracking: Monitor daily ingestion volumes by data source and type
@@ -31,8 +31,8 @@ Cost Projections: Project future costs based on current usage patterns
 Optimization Recommendations: Get actionable recommendations to further reduce costs
 Table Management: Interactive interface to adjust storage tiers and retention periods
 
-Architecture Overview
-Microsoft Sentinel All-In-One V3 deploys:
+# Architecture Overview
+## Microsoft Sentinel All-In-One V3 deploys:
 
 A Log Analytics workspace with Microsoft Sentinel enabled
 Data Collection Rules optimized for cost efficiency
@@ -41,16 +41,14 @@ Analytics rules tailored to your environment
 Cost optimization workbooks and dashboards
 Industry-specific content based on your selected vertical
 
-Prerequisites
+# Prerequisites
 
-Azure subscription
+# Azure subscription
 Permissions to create resources and role assignments (Contributor and User Access Administrator)
 For certain data connectors: appropriate licenses and Global Admin or Security Admin permissions
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FDataGuys%2FSentinel-All-In-OneV3%2Fmain%2Fv3%2Fdeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FDataGuys%2FSentinel-All-In-OneV3%2Fmain%2Fv3%2FcreateUIDefinition.json)
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FTools%2FSentinel-All-In-One%2Fv3%2Fdeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FTools%2FSentinel-All-In-One%2Fv3%2FcreateUIDefinition.json)
-
-
-Deployment Guide
+# Deployment Guide
 
 Click the "Deploy to Azure" button above
 Fill in the required parameters:
