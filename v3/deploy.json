@@ -1,0 +1,413 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "rgName": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group name"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for all resources"
+            }
+        },
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Log Analytics workspace"
+            }
+        },
+        "pricingTier": {
+            "type": "string",
+            "metadata": {
+                "description": "Pricing tier: pergb2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
+            },
+            "allowedValues": [
+                "CapacityReservation",
+                "Free",
+                "LACluster",
+                "PerGB2018",
+                "PerNode",
+                "Premium",
+                "Standalone",
+                "Standard"
+            ],
+            "defaultValue": "PerGB2018"
+        },
+        "capacityReservation": {
+            "type": "int",
+            "metadata": {
+                "description": "Commitment tier"
+            },
+            "allowedValues": [
+                100,
+                200,
+                300,
+                400,
+                500,
+                1000,
+                2000,
+                5000
+            ],
+            "defaultValue": 100
+        },
+        "enableDataConnectors": {
+            "type": "array",
+            "metadata": {
+                "description": "The kind of data connectors to enable"
+            },
+            "defaultValue": []
+        },
+        "severityLevels": {
+            "type": "array",
+            "metadata": {
+                "description": "Severity levels desired for Analytics Rules"
+            },
+            "defaultValue": []
+        },
+        "dailyQuota": {
+            "type": "int",
+            "metadata": {
+                "description": "Daily ingestion limit in GBs. This limit doesn't apply to the following tables: SecurityAlert, SecurityBaseline, SecurityBaselineSummary, SecurityDetection, SecurityEvent, WindowsFirewall, MaliciousIPCommunication, LinuxAuditLog, SysmonEvent, ProtectionStatus, WindowsEvent"
+            }
+        },
+        "standardTierRetention": {
+            "type": "int",
+            "minValue": 7,
+            "maxValue": 730,
+            "metadata": {
+                "description": "Number of days of retention for standard tier data."
+            },
+            "defaultValue": 90
+        },
+        "auxiliaryTierRetention": {
+            "type": "int",
+            "minValue": 7,
+            "maxValue": 730,
+            "metadata": {
+                "description": "Number of days of retention for auxiliary tier data."
+            },
+            "defaultValue": 30
+        },
+        "basicTierRetention": {
+            "type": "int",
+            "minValue": 7,
+            "maxValue": 2555,
+            "metadata": {
+                "description": "Number of days of retention for basic tier data (longer retention at lower cost)."
+            },
+            "defaultValue": 180
+        },
+        "enableMultiTier": {
+            "type": "bool",
+            "metadata": {
+                "description": "Enable multi-tier storage for cost optimization"
+            },
+            "defaultValue": true
+        },
+        "enableSolutions1P": {
+            "type": "array",
+            "metadata": {
+                "description": "The list of Content Hub 1st party solutions to deploy."
+            },
+            "defaultValue": []
+        },
+        "enableSolutionsEssentials": {
+            "type": "array",
+            "metadata": {
+                "description": "The list of Content Hub Essentials solutions to deploy."
+            },
+            "defaultValue": []
+        },
+        "enableSolutionsTraining": {
+            "type": "array",
+            "metadata": {
+                "description": "The list of Content Hub Training solutions to deploy."
+            },
+            "defaultValue": []
+        },
+        "aadStreams": {
+            "type": "array",
+            "metadata": {
+                "description": "The list of data types to enable for Azure AD connector"
+            },
+            "defaultValue": []
+        },
+        "entraIDTier": {
+            "type": "string",
+            "defaultValue": "Auxiliary",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for Entra ID logs"
+            }
+        },
+        "nonInteractiveSignInsEnabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable collection of Non-Interactive SignIn logs"
+            }
+        },
+        "enableCorelight": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable Corelight data collection"
+            }
+        },
+        "highValueTableTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for high-value Corelight tables (dns, http, ssl)"
+            }
+        },
+        "mediumValueTableTier": {
+            "type": "string",
+            "defaultValue": "Auxiliary",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for medium-value Corelight tables"
+            }
+        },
+        "lowValueTableTier": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for low-value but necessary Corelight tables"
+            }
+        },
+        "industryVertical": {
+            "type": "string",
+            "allowedValues": [
+                "Healthcare",
+                "Financial",
+                "Government",
+                "Manufacturing",
+                "Retail",
+                "Technology",
+                "General"
+            ],
+            "defaultValue": "General",
+            "metadata": {
+                "description": "Industry vertical to deploy specialized queries for"
+            }
+        },
+        "enableUeba": {
+            "type": "bool",
+            "metadata": {
+                "description": "Whether or not UEBA should be enabled"
+            },
+            "defaultValue": true
+        },
+        "identityProviders": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of identity providers to be synched with UEBA. Valid identity providers are 'ActiveDirectory' and 'AzureActiveDirectory'"
+            },
+            "defaultValue": []
+        },
+        "enableDiagnostics": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "enableMLAlerts": {
+            "type": "bool",
+            "metadata": {
+                "description": "Enable ML Behavior Analytics rules"
+            },
+            "defaultValue": false
+        },
+        "enableScheduledAlerts": {
+            "type": "bool",
+            "metadata": {
+                "description": "Enable Scheduled analytics rules"
+            },
+            "defaultValue": false
+        },
+        "enableCostDashboard": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Deploy the cost monitoring dashboard"
+            }
+        }
+    },
+    "variables": {
+        "artifacts_location": "https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Tools/Sentinel-All-In-One/v3"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2021-04-01",
+            "name": "[parameters('rgName')]",
+            "location": "[parameters('location')]",
+            "properties": {}
+        },
+        {
+            "name": "workspaceCreation",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
+            ],
+            "resourceGroup": "[parameters('rgName')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(variables('artifacts_location'), '/LinkedTemplates/workspace.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "pricingTier": {
+                        "value": "[parameters('pricingTier')]"
+                    },
+                    "dailyQuota": {
+                        "value": "[parameters('dailyQuota')]"
+                    },
+                    "standardTierRetention": {
+                        "value": "[parameters('standardTierRetention')]"
+                    },
+                    "auxiliaryTierRetention": {
+                        "value": "[parameters('auxiliaryTierRetention')]"
+                    },
+                    "basicTierRetention": {
+                        "value": "[parameters('basicTierRetention')]"
+                    },
+                    "enableMultiTier": {
+                        "value": "[parameters('enableMultiTier')]"
+                    },
+                    "immediatePurgeDataOn30Days": {
+                        "value": true
+                    },
+                    "capacityReservation": {
+                        "value": "[parameters('capacityReservation')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[parameters('enableCorelight')]",
+            "name": "corelightDCRDeployment",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "dependsOn": [
+                "workspaceCreation"
+            ],
+            "resourceGroup": "[parameters('rgName')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(variables('artifacts_location'), '/LinkedTemplates/corelightDcr.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "dcrName": {
+                        "value": "[concat('DCR-Corelight-', parameters('workspaceName'))]"
+                    },
+                    "highValueTableTier": {
+                        "value": "[parameters('highValueTableTier')]"
+                    },
+                    "mediumValueTableTier": {
+                        "value": "[parameters('mediumValueTableTier')]"
+                    },
+                    "lowValueTableTier": {
+                        "value": "[parameters('lowValueTableTier')]"
+                    },
+                    "enableDNS": {
+                        "value": true
+                    },
+                    "enableHTTP": {
+                        "value": true
+                    },
+                    "enableSSL": {
+                        "value": true
+                    },
+                    "enableConn": {
+                        "value": true
+                    },
+                    "enableSMB": {
+                        "value": false
+                    }
+                }
+            }
+        },
+        {
+            "name": "dcrDeployment",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "dependsOn": [
+                "workspaceCreation"
+            ],
+            "resourceGroup": "[parameters('rgName')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(variables('artifacts_location'), '/LinkedTemplates/dcrTemplate.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "dcrName": {
+                        "value": "[concat('DCR-Sentinel-', parameters('workspaceName'))]"
+                    },
+                    "entraIDTier": {
+                        "value": "[parameters('entraIDTier')]"
+                    },
+                    "nonInteractiveSignInsEnabled": {
+                        "value": "[parameters('nonInteractiveSignInsEnabled')]"
+                    },
+                    "tenantId": {
+                        "value": "[subscription().tenantId]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "queryPackDeployment",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "dependsOn": [
+                "workspaceCreation"
+            ],
+            "resourceGroup": "[parameters('rgName')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(variables('artifacts_location'), '/LinkedTemplates/queryPacks.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "queryPackName": {
+                        "value": "[concat('QueryPack-', parameters('industryVertical'), '-', parameters('workspaceName'))]"
+                    },
+                    "industryVertical": {
+                        "value": "[parameters('industryVertica
