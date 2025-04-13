@@ -250,53 +250,47 @@
             "properties": {}
         },
         {
-            "name": "workspaceCreation",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
-            ],
-            "resourceGroup": "[parameters('rgName')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/workspace.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "workspaceName": {
-                        "value": "[parameters('workspaceName')]"
-                    },
-                    "pricingTier": {
-                        "value": "[parameters('pricingTier')]"
-                    },
-                    "dailyQuota": {
-                        "value": "[parameters('dailyQuota')]"
-                    },
-                    "standardTierRetention": {
-                        "value": "[parameters('standardTierRetention')]"
-                    },
-                    "auxiliaryTierRetention": {
-                        "value": "[parameters('auxiliaryTierRetention')]"
-                    },
-                    "basicTierRetention": {
-                        "value": "[parameters('basicTierRetention')]"
-                    },
-                    "enableMultiTier": {
-                        "value": "[parameters('enableMultiTier')]"
-                    },
-                    "immediatePurgeDataOn30Days": {
-                        "value": true
-                    },
-                    "capacityReservation": {
-                        "value": "[parameters('capacityReservation')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    }
-                }
-            }
+    "name": "workspaceCreation",
+    "type": "Microsoft.Resources/deployments",
+    "apiVersion": "2021-04-01",
+    "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
+    ],
+    "resourceGroup": "[parameters('rgName')]",
+    "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+            "uri": "[concat(variables('artifacts_location'), '/workspace.json')]",
+            "contentVersion": "1.0.0.0"
         },
+        "parameters": {
+            "workspaceName": {
+                "value": "[parameters('workspaceName')]"
+            },
+            "pricingTier": {
+                "value": "[parameters('pricingTier')]"
+            },
+            "dailyQuota": {
+                "value": "[parameters('dailyQuota')]"
+            },
+            "standardTierRetention": {
+                "value": "[parameters('standardTierRetention')]"
+            },
+            "immediatePurgeDataOn30Days": {
+                "value": true
+            },
+            "enableMultiTier": {
+                "value": "[parameters('enableMultiTier')]"
+            },
+            "capacityReservation": {
+                "value": "[parameters('capacityReservation')]"
+            },
+            "location": {
+                "value": "[parameters('location')]"
+            }
+        }
+    }
+}
         {
             "condition": "[parameters('enableCorelight')]",
             "name": "corelightDCRDeployment",
