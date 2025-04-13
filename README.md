@@ -5,9 +5,9 @@ Key Cost Optimization Features
 Multi-Tier Storage
 Sentinel V3 leverages Azure Log Analytics multi-tier storage to optimize costs:
 
-### Standard Tier: For critical security data requiring frequent querying and real-time analytics
-### Auxiliary Tier: For less critical data that doesn't need to be queried as frequently
-### Basic Tier: For data that needs to be retained for compliance purposes but is rarely queried
+* ### Standard Tier: For critical security data requiring frequent querying and real-time analytics
+* ### Auxiliary Tier: For less critical data that doesn't need to be queried as frequently
+* ### Basic Tier: For data that needs to be retained for compliance purposes but is rarely queried
 
 ## Data Collection Optimization
 Gain more granular control over what data is collected with:
