@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Log Analytics workspace"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "workbookName": {
+            "type": "string",
+            "defaultValue": "Sentinel-V3-Cost-Monitor",
+            "metadata": {
+                "description": "Name for the cost monitoring workbook"
+            }
+        },
+        "workbookDisplayName": {
+            "type": "string",
+            "defaultValue": "Sentinel V3 Cost Optimization Dashboard",
+            "metadata": {
+                "description": "Display name for the cost monitoring workbook"
+            }
+        }
+    },
+    "variables": {
+        "workbookId": "[resourceId('Microsoft.Insights/workbooks', parameters('workbookName'))]",
+        "workbookContent": "{\"version\":\"Notebook/1.0\",\"items\":[{\"type\":1,\"content\":{\"json\":\"# Microsoft Sentinel Cost Optimization Dashboard\\r\\n\\r\\nThis dashboard helps you monitor and optimize the costs associated with your Microsoft Sentinel deployment.\\r\\n\\r\\n\"},\"name\":\"text - 0\"},{\"type\":9,\"content\":{\"version\":\"KqlParameterItem/1.0\",\"parameters\":[{\"id\":\"94c93e8c-b1b0-4bdf-901e-81b894c67b1d\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"TimeRange\",\"label\":\"Time Range\",\"type\":4,\"isRequired\":true,\"value\":{\"durationMs\":2592000000},\"typeSettings\":{\"selectableValues\":[{\"durationMs\":86400000},{\"durationMs\":604800000},{\"durationMs\":2592000000}]}}],\"style\":\"pills\",\"queryType\":0},\"name\":\"parameters - 1\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"Usage\\r\\n| where TimeGenerated > ago(30d)\\r\\n| where IsBillable == true\\r\\n| summarize TotalGBytes = sum(Quantity) / 1000 by bin(TimeGenerated, 1d), Solution\\r\\n| render timechart\",\"size\":0,\"aggregation\":5,\"title\":\"Daily Ingestion Volume by Solution\",\"timeContext\":{\"durationMs\":2592000000},\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.OperationalInsights/workspaces/${parameters('workspaceName')}\"]},\"name\":\"DailyIngestionBySolution\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"Usage\\r\\n| where TimeGenerated > ago(30d)\\r\\n| where IsBillable == true\\r\\n| summarize TotalGBytes = sum(Quantity) / 1000 by bin(TimeGenerated, 1d), DataType\\r\\n| render timechart\",\"size\":0,\"aggregation\":5,\"title\":\"Daily Ingestion Volume by Data Type\",\"timeContext\":{\"durationMs\":2592000000},\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.OperationalInsights/work
