@@ -18,12 +18,12 @@ Intelligent Data Collection Rules (DCRs): Filter data before ingestion to reduce
 
 ## Industry-Specific Configurations
 
-Industry Query Packs: Pre-built queries tailored to specific industries including Healthcare, Financial Services, Government, and more
-Tiering Recommendations: Industry-specific guidance for which data to place in each storage tier
-Customized Detection Rules: Security content aligned with industry-specific threats and compliance requirements
+* Industry Query Packs: Pre-built queries tailored to specific industries including Healthcare, Financial Services, Government, and more
+* Tiering Recommendations: Industry-specific guidance for which data to place in each storage tier
+* Customized Detection Rules: Security content aligned with industry-specific threats and compliance requirements
 
 ## Cost Monitoring and Control Workbook as a Dashboard (WaaD)
-A specialized workbook provides visibility into your Sentinel costs:
+A specialized workbook provides visibility and control into your Sentinel costs:
 
 Ingestion Tracking: Monitor daily ingestion volumes by data source and type
 Cost Projections: Project future costs based on current usage patterns
