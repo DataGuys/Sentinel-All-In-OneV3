@@ -71,7 +71,7 @@
         "dailyQuota": {
             "type": "int",
             "metadata": {
-                "description": "Daily ingestion limit in GBs. This limit doesn't apply to the following tables: SecurityAlert, SecurityBaseline, SecurityBaselineSummary, SecurityDetection, SecurityEvent, WindowsFirewall, MaliciousIPCommunication, LinuxAuditLog, SysmonEvent, ProtectionStatus, WindowsEvent"
+                "description": "Daily ingestion limit in GBs. This limit doesn't apply to the following tables: SecurityAlert, SecurityBaseline, SecurityBaselineSummary, SecurityDetection, etc."
             }
         },
         "standardTierRetention": {
@@ -107,135 +107,6 @@
                 "description": "Enable multi-tier storage for cost optimization"
             },
             "defaultValue": true
-        },
-        "enableSolutions1P": {
-            "type": "array",
-            "metadata": {
-                "description": "The list of Content Hub 1st party solutions to deploy."
-            },
-            "defaultValue": []
-        },
-        "enableSolutionsEssentials": {
-            "type": "array",
-            "metadata": {
-                "description": "The list of Content Hub Essentials solutions to deploy."
-            },
-            "defaultValue": []
-        },
-        "enableSolutionsTraining": {
-            "type": "array",
-            "metadata": {
-                "description": "The list of Content Hub Training solutions to deploy."
-            },
-            "defaultValue": []
-        },
-        "aadStreams": {
-            "type": "array",
-            "metadata": {
-                "description": "The list of data types to enable for Azure AD connector"
-            },
-            "defaultValue": []
-        },
-        "entraIDTier": {
-            "type": "string",
-            "defaultValue": "Auxiliary",
-            "allowedValues": ["Standard", "Auxiliary", "Basic"],
-            "metadata": {
-                "description": "Storage tier for Entra ID logs"
-            }
-        },
-        "nonInteractiveSignInsEnabled": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Enable collection of Non-Interactive SignIn logs"
-            }
-        },
-        "enableCorelight": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Enable Corelight data collection"
-            }
-        },
-        "highValueTableTier": {
-            "type": "string",
-            "defaultValue": "Standard",
-            "allowedValues": ["Standard", "Auxiliary", "Basic"],
-            "metadata": {
-                "description": "Storage tier for high-value Corelight tables (dns, http, ssl)"
-            }
-        },
-        "mediumValueTableTier": {
-            "type": "string",
-            "defaultValue": "Auxiliary",
-            "allowedValues": ["Standard", "Auxiliary", "Basic"],
-            "metadata": {
-                "description": "Storage tier for medium-value Corelight tables"
-            }
-        },
-        "lowValueTableTier": {
-            "type": "string",
-            "defaultValue": "Basic",
-            "allowedValues": ["Standard", "Auxiliary", "Basic"],
-            "metadata": {
-                "description": "Storage tier for low-value but necessary Corelight tables"
-            }
-        },
-        "industryVertical": {
-            "type": "string",
-            "allowedValues": [
-                "Healthcare",
-                "Financial",
-                "Government",
-                "Manufacturing",
-                "Retail",
-                "Technology",
-                "General"
-            ],
-            "defaultValue": "General",
-            "metadata": {
-                "description": "Industry vertical to deploy specialized queries for"
-            }
-        },
-        "enableUeba": {
-            "type": "bool",
-            "metadata": {
-                "description": "Whether or not UEBA should be enabled"
-            },
-            "defaultValue": true
-        },
-        "identityProviders": {
-            "type": "array",
-            "metadata": {
-                "description": "Array of identity providers to be synched with UEBA. Valid identity providers are 'ActiveDirectory' and 'AzureActiveDirectory'"
-            },
-            "defaultValue": []
-        },
-        "enableDiagnostics": {
-            "type": "bool",
-            "defaultValue": false
-        },
-        "enableMLAlerts": {
-            "type": "bool",
-            "metadata": {
-                "description": "Enable ML Behavior Analytics rules"
-            },
-            "defaultValue": false
-        },
-        "enableScheduledAlerts": {
-            "type": "bool",
-            "metadata": {
-                "description": "Enable Scheduled analytics rules"
-            },
-            "defaultValue": false
-        },
-        "enableCostDashboard": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Deploy the cost monitoring dashboard"
-            }
         }
     },
     "variables": {
@@ -250,187 +121,37 @@
             "properties": {}
         },
         {
-    "name": "workspaceCreation",
-    "type": "Microsoft.Resources/deployments",
-    "apiVersion": "2021-04-01",
-    "dependsOn": [
-        "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
-    ],
-    "resourceGroup": "[parameters('rgName')]",
-    "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-            "uri": "[concat(variables('artifacts_location'), '/workspace.json')]",
-            "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-            "workspaceName": {
-                "value": "[parameters('workspaceName')]"
-            },
-            "pricingTier": {
-                "value": "[parameters('pricingTier')]"
-            },
-            "dailyQuota": {
-                "value": "[parameters('dailyQuota')]"
-            },
-            "standardTierRetention": {
-                "value": "[parameters('standardTierRetention')]"
-            },
-            "immediatePurgeDataOn30Days": {
-                "value": true
-            },
-            "enableMultiTier": {
-                "value": "[parameters('enableMultiTier')]"
-            },
-            "capacityReservation": {
-                "value": "[parameters('capacityReservation')]"
-            },
-            "location": {
-                "value": "[parameters('location')]"
-            }
-        }
-    }
-}
-        {
-            "condition": "[parameters('enableCorelight')]",
-            "name": "corelightDCRDeployment",
+            "name": "workspaceCreation",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2021-04-01",
             "dependsOn": [
-                "workspaceCreation"
+                "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
             ],
             "resourceGroup": "[parameters('rgName')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/corelightDcr.json')]",
+                    "uri": "[concat(variables('artifacts_location'), '/workspace.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
                     "workspaceName": {
                         "value": "[parameters('workspaceName')]"
                     },
-                    "location": {
-                        "value": "[parameters('location')]"
+                    "pricingTier": {
+                        "value": "[parameters('pricingTier')]"
                     },
-                    "dcrName": {
-                        "value": "[concat('DCR-Corelight-', parameters('workspaceName'))]"
+                    "dailyQuota": {
+                        "value": "[parameters('dailyQuota')]"
                     },
-                    "highValueTableTier": {
-                        "value": "[parameters('highValueTableTier')]"
+                    "standardTierRetention": {
+                        "value": "[parameters('standardTierRetention')]"
                     },
-                    "mediumValueTableTier": {
-                        "value": "[parameters('mediumValueTableTier')]"
+                    "enableMultiTier": {
+                        "value": "[parameters('enableMultiTier')]"
                     },
-                    "lowValueTableTier": {
-                        "value": "[parameters('lowValueTableTier')]"
-                    },
-                    "enableDNS": {
-                        "value": true
-                    },
-                    "enableHTTP": {
-                        "value": true
-                    },
-                    "enableSSL": {
-                        "value": true
-                    },
-                    "enableConn": {
-                        "value": true
-                    },
-                    "enableSMB": {
-                        "value": false
-                    }
-                }
-            }
-        },
-        {
-            "name": "dcrDeployment",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "dependsOn": [
-                "workspaceCreation"
-            ],
-            "resourceGroup": "[parameters('rgName')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/dcrtemplate.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "workspaceName": {
-                        "value": "[parameters('workspaceName')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "dcrName": {
-                        "value": "[concat('DCR-Sentinel-', parameters('workspaceName'))]"
-                    },
-                    "entraIDTier": {
-                        "value": "[parameters('entraIDTier')]"
-                    },
-                    "nonInteractiveSignInsEnabled": {
-                        "value": "[parameters('nonInteractiveSignInsEnabled')]"
-                    },
-                    "tenantId": {
-                        "value": "[subscription().tenantId]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "queryPackDeployment",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "dependsOn": ["workspaceCreation"],
-            "resourceGroup": "[parameters('rgName')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/queryPacks.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "workspaceName": {"value": "[parameters('workspaceName')]"},
-                    "location": {"value": "[parameters('location')]"},
-                    "queryPackName": {"value": "[concat('QueryPack-', parameters('industryVertical'), '-', parameters('workspaceName'))]"},
-                    "industryVertical": {"value": "[parameters('industryVertical')]"}
-                }
-            }
-        },
-        {
-            "name": "solutionsDeployment",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "dependsOn": [
-                "workspaceCreation"
-            ],
-            "resourceGroup": "[parameters('rgName')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/LinkedTemplates/solutionsAndAlerts.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "enableSolutions1P": {
-                        "value": "[replace(replace(string(parameters('enableSolutions1P')),'[',''),']','')]"
-                    },
-                    "enableSolutionsEssentials": {
-                        "value": "[replace(replace(string(parameters('enableSolutionsEssentials')),'[',''),']','')]"
-                    },
-                    "enableSolutionsTraining": {
-                        "value": "[replace(replace(string(parameters('enableSolutionsTraining')),'[',''),']','')]"
-                    },
-                    "workspaceName": {
-                        "value": "[parameters('workspaceName')]"
-                    },
-                    "severityLevels": {
-                        "value": "[replace(replace(string(parameters('severityLevels')),'[',''),']','')]"
-                    },
-                    "enableAlerts": {
-                        "value": "[parameters('enableScheduledAlerts')]"
+                    "capacityReservation": {
+                        "value": "[parameters('capacityReservation')]"
                     },
                     "location": {
                         "value": "[parameters('location')]"
