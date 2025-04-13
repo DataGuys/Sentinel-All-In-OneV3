@@ -1,0 +1,103 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Log Analytics workspace"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "dcrName": {
+            "type": "string",
+            "defaultValue": "DCR-Sentinel-V3",
+            "metadata": {
+                "description": "Name for the Data Collection Rule"
+            }
+        },
+        "entraIDTier": {
+            "type": "string",
+            "defaultValue": "Auxiliary",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for Entra ID logs"
+            }
+        },
+        "nonInteractiveSignInsEnabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable collection of Non-Interactive SignIn logs"
+            }
+        },
+        "tenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure AD tenant ID"
+            }
+        }
+    },
+    "variables": {
+        "dcrId": "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('dcrName'))]",
+        "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/dataCollectionRules",
+            "apiVersion": "2022-06-01",
+            "name": "[parameters('dcrName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "description": "Sentinel V3 Data Collection Rules",
+                "dataSources": {
+                    "microsoft-entra-diagnostics": [
+                        {
+                            "streams": ["Microsoft-AADNonInteractiveUserSignInLogs"],
+                            "name": "AADNonInteractiveSignInLogs",
+                            "enabled": "[parameters('nonInteractiveSignInsEnabled')]",
+                            "tier": "[parameters('entraIDTier')]"
+                        }
+                    ]
+                },
+                "destinations": {
+                    "logAnalytics": [
+                        {
+                            "workspaceResourceId": "[variables('workspaceResourceId')]",
+                            "name": "SentinelWorkspace"
+                        }
+                    ]
+                },
+                "dataFlows": [
+                    {
+                        "streams": ["Microsoft-AADNonInteractiveUserSignInLogs"],
+                        "destinations": ["SentinelWorkspace"]
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Insights/dataCollectionRuleAssociations",
+            "apiVersion": "2022-06-01",
+            "name": "[concat(parameters('dcrName'), '-association')]",
+            "scope": "[variables('workspaceResourceId')]",
+            "properties": {
+                "dataCollectionRuleId": "[variables('dcrId')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('dcrName'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "dcrId": {
+            "type": "string",
+            "value": "[variables('dcrId')]"
+        }
+    }
+}
