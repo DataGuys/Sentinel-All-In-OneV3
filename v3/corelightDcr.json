@@ -1,0 +1,207 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Log Analytics workspace"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "dcrName": {
+            "type": "string",
+            "defaultValue": "DCR-Corelight-Sentinel-V3",
+            "metadata": {
+                "description": "Name for the Corelight Data Collection Rule"
+            }
+        },
+        "highValueTableTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for high-value Corelight tables (dns, http, ssl)"
+            }
+        },
+        "mediumValueTableTier": {
+            "type": "string",
+            "defaultValue": "Auxiliary",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for medium-value Corelight tables"
+            }
+        },
+        "lowValueTableTier": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": ["Standard", "Auxiliary", "Basic"],
+            "metadata": {
+                "description": "Storage tier for low-value but necessary Corelight tables"
+            }
+        },
+        "enableDNS": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable Corelight DNS logs"
+            }
+        },
+        "enableHTTP": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable Corelight HTTP logs"
+            }
+        },
+        "enableSSL": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable Corelight SSL logs"
+            }
+        },
+        "enableConn": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable Corelight Conn logs"
+            }
+        },
+        "enableSMB": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable Corelight SMB logs"
+            }
+        }
+    },
+    "variables": {
+        "dcrId": "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('dcrName'))]",
+        "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/dataCollectionRules",
+            "apiVersion": "2022-06-01",
+            "name": "[parameters('dcrName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "description": "Corelight Data Collection Rules for Sentinel V3",
+                "dataSources": {
+                    "logFiles": [
+                        {
+                            "name": "Corelight_DNS",
+                            "streams": ["Custom-Corelight_DNS"],
+                            "filePatterns": ["/var/corelight/logs/dns*"],
+                            "format": "text",
+                            "settings": {
+                                "text": {
+                                    "recordStartTimestampFormat": "ISO 8601"
+                                }
+                            },
+                            "enabled": "[parameters('enableDNS')]",
+                            "tier": "[parameters('highValueTableTier')]"
+                        },
+                        {
+                            "name": "Corelight_HTTP",
+                            "streams": ["Custom-Corelight_HTTP"],
+                            "filePatterns": ["/var/corelight/logs/http*"],
+                            "format": "text",
+                            "settings": {
+                                "text": {
+                                    "recordStartTimestampFormat": "ISO 8601"
+                                }
+                            },
+                            "enabled": "[parameters('enableHTTP')]",
+                            "tier": "[parameters('highValueTableTier')]"
+                        },
+                        {
+                            "name": "Corelight_SSL",
+                            "streams": ["Custom-Corelight_SSL"],
+                            "filePatterns": ["/var/corelight/logs/ssl*"],
+                            "format": "text",
+                            "settings": {
+                                "text": {
+                                    "recordStartTimestampFormat": "ISO 8601"
+                                }
+                            },
+                            "enabled": "[parameters('enableSSL')]",
+                            "tier": "[parameters('highValueTableTier')]"
+                        },
+                        {
+                            "name": "Corelight_Conn",
+                            "streams": ["Custom-Corelight_Conn"],
+                            "filePatterns": ["/var/corelight/logs/conn*"],
+                            "format": "text",
+                            "settings": {
+                                "text": {
+                                    "recordStartTimestampFormat": "ISO 8601"
+                                }
+                            },
+                            "enabled": "[parameters('enableConn')]",
+                            "tier": "[parameters('mediumValueTableTier')]"
+                        },
+                        {
+                            "name": "Corelight_SMB",
+                            "streams": ["Custom-Corelight_SMB"],
+                            "filePatterns": ["/var/corelight/logs/smb*"],
+                            "format": "text",
+                            "settings": {
+                                "text": {
+                                    "recordStartTimestampFormat": "ISO 8601"
+                                }
+                            },
+                            "enabled": "[parameters('enableSMB')]",
+                            "tier": "[parameters('lowValueTableTier')]"
+                        }
+                    ]
+                },
+                "destinations": {
+                    "logAnalytics": [
+                        {
+                            "workspaceResourceId": "[variables('workspaceResourceId')]",
+                            "name": "SentinelWorkspace"
+                        }
+                    ]
+                },
+                "dataFlows": [
+                    {
+                        "streams": [
+                            "Custom-Corelight_DNS",
+                            "Custom-Corelight_HTTP",
+                            "Custom-Corelight_SSL",
+                            "Custom-Corelight_Conn",
+                            "Custom-Corelight_SMB"
+                        ],
+                        "destinations": ["SentinelWorkspace"],
+                        "transformKql": "source | where RawData != \"\""
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Insights/dataCollectionRuleAssociations",
+            "apiVersion": "2022-06-01",
+            "name": "[concat(parameters('dcrName'), '-association')]",
+            "scope": "[variables('workspaceResourceId')]",
+            "properties": {
+                "dataCollectionRuleId": "[variables('dcrId')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('dcrName'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "dcrId": {
+            "type": "string",
+            "value": "[variables('dcrId')]"
+        }
+    }
+}
