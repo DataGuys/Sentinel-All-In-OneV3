@@ -57,24 +57,6 @@
             },
             "defaultValue": 90
         },
-        "auxiliaryTierRetention": {
-            "type": "int",
-            "minValue": 7,
-            "maxValue": 730,
-            "metadata": {
-                "description": "Number of days of retention for auxiliary tier data."
-            },
-            "defaultValue": 30
-        },
-        "basicTierRetention": {
-            "type": "int",
-            "minValue": 7,
-            "maxValue": 2555,
-            "metadata": {
-                "description": "Number of days of retention for basic tier data (longer retention at lower cost)."
-            },
-            "defaultValue": 180
-        },
         "immediatePurgeDataOn30Days": {
             "type": "bool",
             "metadata": {
@@ -119,37 +101,7 @@
                     "capacityReservationLevel": "[if(equals(parameters('pricingTier'),'CapacityReservation'), parameters('capacityReservation'), json('null'))]",
                     "name": "[parameters('pricingTier')]"
                 }
-            },
-            "resources": [
-                {
-                    "condition": "[parameters('enableMultiTier')]",
-                    "type": "tables",
-                    "apiVersion": "2022-10-01",
-                    "name": "AuxiliaryTierSettings",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
-                    ],
-                    "properties": {
-                        "retentionInDays": "[parameters('auxiliaryTierRetention')]",
-                        "totalRetentionInDays": "[parameters('auxiliaryTierRetention')]",
-                        "tier": "Auxiliary"
-                    }
-                },
-                {
-                    "condition": "[parameters('enableMultiTier')]",
-                    "type": "tables",
-                    "apiVersion": "2022-10-01",
-                    "name": "BasicTierSettings",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
-                    ],
-                    "properties": {
-                        "retentionInDays": "[parameters('basicTierRetention')]",
-                        "totalRetentionInDays": "[parameters('basicTierRetention')]",
-                        "tier": "Basic"
-                    }
-                }
-            ]
+            }
         },
         {
             "type": "Microsoft.SecurityInsights/onboardingStates",
