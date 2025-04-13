@@ -719,8 +719,80 @@
                         },
                         "visible": "[or(contains(steps('dataConnectors').enableDataConnectors,'Syslog'),contains(steps('dataConnectors').enableDataConnectors,'SecurityEvents'))]"
                     },
-                    {
+                   {
                         "name": "enableScheduledAlerts",
                         "type": "Microsoft.Common.CheckBox",
                         "label": "Enable Scheduled alert rules for selected Content Hub solutions and Data Connectors?",
-                        "toolTip": "Select to enable Scheduled an
+                        "toolTip": "Select to enable Scheduled and NRT analytics rules for the solutions and connectors selected in the previous tabs",
+                        "constraints": {
+                            "required": false,
+                            "validationMessage": "Enables Scheduled and NRT rules matching any of the selected solutions and connectors"
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "severityLevels",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Select the severity of the rules to enable",
+                        "placeholder": "",
+                        "multiselect": true,
+                        "defaultValue": [{"value": "High"}, {"value": "Medium"}],
+                        "toolTip": "Select the data connectors that you would like to enable",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "High",
+                                    "value": "High"
+                                },
+                                {
+                                    "label": "Medium",
+                                    "value": "Medium"
+                                },
+                                {
+                                    "label": "Low",
+                                    "value": "Low"
+                                },
+                                {
+                                    "label": "Informational",
+                                    "value": "Informational"
+                                }
+                            ],
+                            "required": false
+                        },
+                        "visible": "[steps('analyticsRules').enableScheduledAlerts]"
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "workspaceName": "[basics('workspaceName')]",
+            "dailyQuota": "[basics('dailyQuota')]",
+            "pricingTier": "[basics('pricingTier')]",
+            "capacityReservation": "[basics('capacityReservation')]",
+            "standardTierRetention": "[steps('storageConfig').standardTierRetention]",
+            "auxiliaryTierRetention": "[steps('storageConfig').auxiliaryTierRetention]",
+            "basicTierRetention": "[steps('storageConfig').basicTierRetention]",
+            "enableMultiTier": "[steps('storageConfig').enableMultiTier]",
+            "enableUeba": "[steps('settings').enableUeba]",
+            "identityProviders": "[steps('settings').identityProviders]",
+            "enableDiagnostics": "[steps('settings').enableDiagnostics]",
+            "enableSolutions1P": "[steps('solutions').enableSolutions1P]",
+            "enableSolutionsEssentials": "[steps('solutions').enableSolutionsEssentials]",
+            "enableDataConnectors": "[steps('dataConnectors').enableDataConnectors]",
+            "aadStreams": "[steps('dataConnectors').aadStreams]",
+            "location": "[location()]",
+            "enableMLAlerts": "[steps('analyticsRules').enableMLAlerts]",
+            "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",
+            "severityLevels": "[steps('analyticsRules').severityLevels]",
+            "rgName": "[basics('rgName')]",
+            "enableCostDashboard": "[steps('costOptimization').enableCostDashboard]",
+            "entraIDTier": "[steps('costOptimization').entraIDSection.entraIDTier]",
+            "nonInteractiveSignInsEnabled": "[steps('costOptimization').entraIDSection.nonInteractiveSignInsEnabled]",
+            "enableCorelight": "[steps('costOptimization').corelightSection.enableCorelight]",
+            "highValueTableTier": "[steps('costOptimization').corelightSection.highValueTableTier]",
+            "mediumValueTableTier": "[steps('costOptimization').corelightSection.mediumValueTableTier]",
+            "lowValueTableTier": "[steps('costOptimization').corelightSection.lowValueTableTier]",
+            "industryVertical": "[steps('industrySpecific').industryVertical]"
+        }
+    }
+}
