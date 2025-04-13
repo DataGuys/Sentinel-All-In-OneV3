@@ -260,7 +260,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(variables('artifacts_location'), '/LinkedTemplates/workspace.json')]",
+                    "uri": "[uri(variables('artifacts_location'), '/workspace.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
