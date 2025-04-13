@@ -47,7 +47,7 @@ Industry-specific content based on your selected vertical
 Permissions to create resources and role assignments (Contributor and User Access Administrator)
 For certain data connectors: appropriate licenses and Global Admin or Security Admin permissions
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FDataGuys%2FSentinel-All-In-OneV3%2Fmain%2Fv3%2Fdeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FDataGuys%2FSentinel-All-In-OneV3%2Fmain%2Fv3%2FcreateUIDefinition.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FDataGuys%2FSentinel-All-In-OneV3%2Fmain%2Fv3%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FDataGuys%2FSentinel-All-In-OneV3%2Fmain%2Fv3%2FcreateUIDefinition.json)
 
 # Deployment Guide
 
