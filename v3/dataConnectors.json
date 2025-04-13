@@ -62,7 +62,7 @@
         {
             "condition": "[contains(parameters('dataConnectorsKind'), 'AzureActiveDirectory')]",
             "type": "microsoft.aadiam/diagnosticSettings",
-            "apiVersion": "2023-01-01",
+            "apiVersion": "2017-04-01",
             "scope": "/",
             "name": "[format('{0}-aadDiagnosticSetttings', parameters('workspaceName'))]",
             "properties": {
