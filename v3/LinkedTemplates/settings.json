@@ -35,17 +35,6 @@
     "resources": [
         {
             "condition": "[parameters('enableUeba')]",
-            "type": "Microsoft.SecurityInsights/settings",
-            "apiVersion": "2022-12-01-preview",
-            "name": "EntityAnalytics",
-            "kind": "EntityAnalytics",
-            "scope": "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
-            "properties": {
-                "entityProviders": "[parameters('identityProviders')]"
-            }
-        },
-        {
-            "condition": "[parameters('enableUeba')]",
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
             "name": "[concat('BehaviorAnalyticsInsights','(', parameters('workspaceName'),')')]",
