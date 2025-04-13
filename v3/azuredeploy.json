@@ -309,7 +309,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/LinkedTemplates/corelightDcr.json')]",
+                    "uri": "[concat(variables('artifacts_location'), '/corelightDcr.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
