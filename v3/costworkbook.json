@@ -16,7 +16,7 @@
     },
     "workbookName": {
       "type": "string",
-      "defaultValue": "Sentinel-V3-Interactive-Cost-Monitor",
+      "defaultValue": "SentinelV3-Cost",
       "metadata": {
         "description": "Name for the interactive cost monitoring workbook"
       }
