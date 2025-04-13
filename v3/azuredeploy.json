@@ -202,7 +202,8 @@
         "artifacts_location": "https://raw.githubusercontent.com/DataGuys/Sentinel-All-In-OneV3/main/v3",
         "dataConnectorsKind": "[parameters('enableDataConnectors')]",
         "tenantId": "[subscription().tenantId]",
-        "roleGuid": "[guid(resourceGroup().id, parameters('workspaceName'), 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
+        "subscriptionGuid": "[subscription().subscriptionId]",
+        "defaultRoleGuid": "[guid(subscription().id, parameters('workspaceName'))]"
     },
     "resources": [
         {
@@ -380,7 +381,7 @@
                         "value": "[join(',', parameters('severityLevels'))]"
                     },
                     "roleGuid": {
-                        "value": "[variables('roleGuid')]"
+                        "value": "[variables('defaultRoleGuid')]"
                     }
                 }
             }
@@ -423,7 +424,7 @@
                         "value": "[parameters('location')]"
                     },
                     "roleGuid": {
-                        "value": "[variables('roleGuid')]"
+                        "value": "[guid(subscription().id, parameters('workspaceName'), 'solutions')]"
                     }
                 }
             }
