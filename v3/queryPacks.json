@@ -1,0 +1,128 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Log Analytics workspace"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "queryPackName": {
+            "type": "string",
+            "defaultValue": "SentinelV3-QueryPack",
+            "metadata": {
+                "description": "Name for the Query Pack"
+            }
+        },
+        "industryVertical": {
+            "type": "string",
+            "allowedValues": [
+                "Healthcare",
+                "Financial",
+                "Government",
+                "Manufacturing",
+                "Retail",
+                "Technology",
+                "General"
+            ],
+            "defaultValue": "General",
+            "metadata": {
+                "description": "Industry vertical to deploy specialized queries for"
+            }
+        }
+    },
+    "variables": {
+        "queryPackId": "[resourceId('Microsoft.OperationalInsights/queryPacks', parameters('queryPackName'))]",
+        "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
+        "healthcareQueries": [
+            {
+                "name": "PHI-DataExfiltration-Detection",
+                "displayName": "Potential PHI Data Exfiltration",
+                "description": "Detects potential exfiltration of Protected Health Information through unusual network paths",
+                "body": "let timeframe = 1d;\nlet threshold = 1000000;\nCorelight_HTTP\n| where TimeGenerated > ago(timeframe)\n| where ContentLength > threshold\n| join kind=inner (\n    Corelight_SSL\n    | where TimeGenerated > ago(timeframe)\n    | where Subject contains \"health\" or Subject contains \"medical\" or Subject contains \"patient\"\n) on $left.SourceIP == $right.SourceIP\n| project TimeGenerated, SourceIP, DestinationIP, Host, URI, ContentLength, Subject\n| order by ContentLength desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "Healthcare" },
+                    { "name": "Tactic", "value": "Exfiltration" },
+                    { "name": "DataSensitivity", "value": "High" }
+                ]
+            }
+        ],
+        "financialQueries": [
+            {
+                "name": "FinancialData-AccessPatterns",
+                "displayName": "Unusual Financial Data Access Patterns",
+                "description": "Detects unusual access patterns to financial data repositories",
+                "body": "let timeframe = 1d;\nlet lookback = 14d;\nlet threshold = 2.0;\nAzureActivity\n| where TimeGenerated > ago(timeframe)\n| where ResourceProviderValue has_any (\"Storage\", \"SQL\", \"Cosmos\")\n| where ResourceGroup has_any (\"finance\", \"banking\", \"payment\", \"transaction\")\n| summarize CurrentCount = count() by CallerIpAddress, Caller, OperationName\n| join kind=leftouter (\n    AzureActivity\n    | where TimeGenerated between (ago(lookback) .. ago(timeframe))\n    | where ResourceProviderValue has_any (\"Storage\", \"SQL\", \"Cosmos\")\n    | where ResourceGroup has_any (\"finance\", \"banking\", \"payment\", \"transaction\")\n    | summarize HistoricalCount = count() by CallerIpAddress, Caller, OperationName\n) on CallerIpAddress, Caller, OperationName\n| extend Ratio = iff(HistoricalCount == 0, CurrentCount, CurrentCount*1.0/HistoricalCount)\n| where Ratio > threshold or isempty(HistoricalCount)\n| project CallerIpAddress, Caller, OperationName, CurrentCount, HistoricalCount, Ratio\n| order by Ratio desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "Financial" },
+                    { "name": "Tactic", "value": "PrivilegeEscalation" },
+                    { "name": "Compliance", "value": "PCI-DSS" }
+                ]
+            }
+        ],
+        "governmentQueries": [
+            {
+                "name": "SensitiveData-CrossDomainTransfer",
+                "displayName": "Cross-Domain Data Transfer Detection",
+                "description": "Detects potential unauthorized cross-domain data transfers in government environments",
+                "body": "let timeframe = 1d;\nlet threshold = 10;\nCorelight_Conn\n| where TimeGenerated > ago(timeframe)\n| where DestinationPort != 80 and DestinationPort != 443\n| summarize TransferCount = count(), BytesTransferred = sum(tolong(OrigBytes) + tolong(ResponseBytes)) by SourceIP, DestinationIP\n| where BytesTransferred > 1000000\n| join kind=inner (\n    AzureActivity \n    | where TimeGenerated > ago(timeframe)\n    | where OperationName has_any (\"Microsoft.Authorization\", \"Microsoft.Security\")\n    | where ActivityStatus == \"Failed\"\n    | summarize FailedAuthCount = count() by CallerIpAddress\n    | where FailedAuthCount > threshold\n) on $left.SourceIP == $right.CallerIpAddress\n| project TimeGenerated, SourceIP, DestinationIP, BytesTransferred, FailedAuthCount\n| order by BytesTransferred desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "Government" },
+                    { "name": "Tactic", "value": "Exfiltration" },
+                    { "name": "Classification", "value": "Sensitive" }
+                ]
+            }
+        ],
+        "selectedQueries": "[if(equals(parameters('industryVertical'), 'Healthcare'), variables('healthcareQueries'), if(equals(parameters('industryVertical'), 'Financial'), variables('financialQueries'), if(equals(parameters('industryVertical'), 'Government'), variables('governmentQueries'), json('[]'))))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/queryPacks",
+            "apiVersion": "2019-09-01",
+            "name": "[parameters('queryPackName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "tags": {
+                    "Industry": "[parameters('industryVertical')]",
+                    "Purpose": "SecurityMonitoring",
+                    "Version": "3.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.OperationalInsights/queryPacks/queries",
+            "apiVersion": "2019-09-01",
+            "name": "[concat(parameters('queryPackName'), '/', variables('selectedQueries')[copyIndex()].name)]",
+            "dependsOn": [
+                "[variables('queryPackId')]"
+            ],
+            "copy": {
+                "name": "queriesCopy",
+                "count": "[length(variables('selectedQueries'))]"
+            },
+            "properties": {
+                "displayName": "[variables('selectedQueries')[copyIndex()].displayName]",
+                "description": "[variables('selectedQueries')[copyIndex()].description]",
+                "body": "[variables('selectedQueries')[copyIndex()].body]",
+                "category": "[variables('selectedQueries')[copyIndex()].category]",
+                "tags": "[variables('selectedQueries')[copyIndex()].tags]"
+            }
+        }
+    ],
+    "outputs": {
+        "queryPackId": {
+            "type": "string",
+            "value": "[variables('queryPackId')]"
+        }
+    }
+}
