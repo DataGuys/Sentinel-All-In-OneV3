@@ -22,7 +22,7 @@ Industry Query Packs: Pre-built queries tailored to specific industries includin
 Tiering Recommendations: Industry-specific guidance for which data to place in each storage tier
 Customized Detection Rules: Security content aligned with industry-specific threats and compliance requirements
 
-## Cost Monitoring Dashboard
+## Cost Monitoring and Control Workbook as a Dashboard (WaaD)
 A specialized workbook provides visibility into your Sentinel costs:
 
 Ingestion Tracking: Monitor daily ingestion volumes by data source and type
