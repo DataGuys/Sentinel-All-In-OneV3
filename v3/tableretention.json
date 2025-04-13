@@ -1,0 +1,98 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Log Analytics workspace"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "tableConfigurations": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of table configurations including name, tier, and retention"
+            },
+            "defaultValue": [
+                {
+                    "tableName": "SigninLogs",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "AuditLogs",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "SecurityAlert",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "SecurityIncident",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "NonInteractiveUserSignInLogs",
+                    "tier": "Auxiliary",
+                    "retentionInDays": 30
+                },
+                {
+                    "tableName": "ServicePrincipalSignInLogs",
+                    "tier": "Auxiliary",
+                    "retentionInDays": 30
+                },
+                {
+                    "tableName": "Corelight_DNS",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "Corelight_HTTP",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "Corelight_SSL",
+                    "tier": "Dedicated",
+                    "retentionInDays": 90
+                },
+                {
+                    "tableName": "Corelight_Conn",
+                    "tier": "Auxiliary",
+                    "retentionInDays": 30
+                },
+                {
+                    "tableName": "Corelight_SMB",
+                    "tier": "Basic",
+                    "retentionInDays": 180
+                }
+            ]
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/tables",
+            "apiVersion": "2022-10-01",
+            "name": "[concat(parameters('workspaceName'), '/', parameters('tableConfigurations')[copyIndex()].tableName)]",
+            "copy": {
+                "name": "tableCopy",
+                "count": "[length(parameters('tableConfigurations'))]"
+            },
+            "properties": {
+                "retentionInDays": "[parameters('tableConfigurations')[copyIndex()].retentionInDays]",
+                "totalRetentionInDays": "[parameters('tableConfigurations')[copyIndex()].retentionInDays]",
+                "tier": "[parameters('tableConfigurations')[copyIndex()].tier]"
+            }
+        }
+    ],
+    "outputs": {}
+}
