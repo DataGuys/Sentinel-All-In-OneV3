@@ -1,16 +1,15 @@
 # Microsoft Sentinel All-In-One V3: Cost-Optimized Deployment
 Microsoft Sentinel All-In-One V3 is a comprehensive solution that simplifies the deployment and configuration of Microsoft Sentinel while introducing advanced cost optimization features. This solution helps organizations effectively manage their security monitoring costs without compromising threat detection capabilities.
-Show Image
-Show Image
+
 Key Cost Optimization Features
 Multi-Tier Storage
 Sentinel V3 leverages Azure Log Analytics multi-tier storage to optimize costs:
 
-Standard Tier: For critical security data requiring frequent querying and real-time analytics
-Auxiliary Tier: For less critical data that doesn't need to be queried as frequently
-Basic Tier: For data that needs to be retained for compliance purposes but is rarely queried
+### Standard Tier: For critical security data requiring frequent querying and real-time analytics
+### Auxiliary Tier: For less critical data that doesn't need to be queried as frequently
+### Basic Tier: For data that needs to be retained for compliance purposes but is rarely queried
 
-Data Collection Optimization
+## Data Collection Optimization
 Gain more granular control over what data is collected with:
 
 Entra ID Optimization: Fine-tune collection of high-volume logs like NonInteractiveSignIn logs
