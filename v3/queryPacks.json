@@ -30,6 +30,7 @@
                 "Manufacturing",
                 "Retail",
                 "Technology",
+                "BioPharma",
                 "General"
             ],
             "defaultValue": "General",
@@ -83,7 +84,87 @@
                 ]
             }
         ],
-        "selectedQueries": "[if(equals(parameters('industryVertical'), 'Healthcare'), variables('healthcareQueries'), if(equals(parameters('industryVertical'), 'Financial'), variables('financialQueries'), if(equals(parameters('industryVertical'), 'Government'), variables('governmentQueries'), json('[]'))))]"
+        "bioPharmaQueries": [
+            {
+                "name": "BioPharma-IP-Theft-Detection",
+                "displayName": "Intellectual Property Data Exfiltration Detection",
+                "description": "Detects potential exfiltration of intellectual property through unusual file or data transfers in bio-pharma environments",
+                "body": "let timeframe = 1d;\nlet threshold = 50000000; // 50MB\nlet sensitiveKeywords = dynamic(['clinical', 'trial', 'research', 'compound', 'molecule', 'patent', 'formula', 'proprietary', 'pharma', 'candidate', 'protocol']);\n\n// Detect large file transfers with sensitive filenames\nOffice365\n| where TimeGenerated > ago(timeframe)\n| where Operation in ('FileDownloaded', 'FileAccessed', 'FileUploaded', 'FileSyncDownloadedFull')\n| where OfficeObjectId has_any (sensitiveKeywords) \n| join kind=inner (\n    SigninLogs\n    | where TimeGenerated > ago(timeframe)\n    | where ResultType == 0\n    | extend Country = tostring(LocationDetails.countryOrRegion)\n    | where isnotempty(Country)\n    | project UserId = Identity, IPAddress, Country, City = tostring(LocationDetails.city), UserAgent\n) on $left.UserId == $right.UserId\n| summarize FilesAccessed = count(), TotalSize = sum(tolong(OfficeWorkload)) by UserId, IPAddress, Country, City, UserAgent\n| where TotalSize > threshold\n| extend AttackStage = 'Exfiltration'\n| extend ATTACKTactic = 'TA0010'\n| extend ATTACKTechnique = 'T1567'\n| order by TotalSize desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "BioPharma" },
+                    { "name": "Tactic", "value": "Exfiltration" },
+                    { "name": "DataSensitivity", "value": "Intellectual Property" },
+                    { "name": "MITRE", "value": "TA0010:T1567" }
+                ]
+            },
+            {
+                "name": "BioPharma-InsiderThreat-Research",
+                "displayName": "Insider Threat - Research Environment Activity",
+                "description": "Detects unusual access patterns to research data repositories by insiders during off-hours",
+                "body": "let timeframe = 7d;\nlet offHours = dynamic([0, 1, 2, 3, 4, 5, 6, 22, 23]); // Considering hours outside normal working hours\nlet sensitiveResources = dynamic(['research', 'lab', 'clinical', 'trial', 'compound', 'study', 'patient']);\n\nAzureActivity\n| where TimeGenerated > ago(timeframe)\n| where ResourceProviderValue has_any ('Storage', 'SQL', 'KeyVault')\n| where ResourceGroup has_any (sensitiveResources) or ResourceId has_any (sensitiveResources)\n| extend Hour = datetime_part('hour', TimeGenerated)\n| where Hour in (offHours)\n| summarize ActivityCount = count(), OperationList = make_set(OperationName, 10) by Caller, CallerIpAddress, ResourceGroup, Resource, bin(TimeGenerated, 1h)\n| extend DeviceInfo = tostring(split(CallerIpAddress, ':')[0])\n| join kind=leftouter (\n    AuditLogs\n    | where TimeGenerated > ago(timeframe)\n    | where OperationName has_any ('Add member to role', 'Add app role assignment to service principal', 'Add service principal')\n    | project Actor = Identity, Operation = OperationName, TimeGenerated\n) on $left.Caller == $right.Actor\n| extend RiskLevel = iff(isnotempty(Operation), 'High', 'Medium')\n| extend AttackStage = 'Collection'\n| extend ATTACKTactic = 'TA0009'\n| extend ATTACKTechnique = 'T1530'\n| order by TimeGenerated desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "BioPharma" },
+                    { "name": "Tactic", "value": "Collection" },
+                    { "name": "ThreatCategory", "value": "Insider Threat" },
+                    { "name": "MITRE", "value": "TA0009:T1530" }
+                ]
+            },
+            {
+                "name": "BioPharma-ClinicalData-Access-Anomalies",
+                "displayName": "Clinical Data Unusual Access Patterns",
+                "description": "Identifies unusual access patterns to clinical trial data that may indicate unauthorized access",
+                "body": "let timeframe = 14d;\nlet lookback = 90d;\nlet deviation_threshold = 2.0;\n\n// First establish a baseline for each user\nlet baseline = SigninLogs\n| where TimeGenerated between(ago(lookback)..ago(timeframe))\n| where AppDisplayName has_any ('Clinical', 'Patient', 'Trial', 'Research')\n| summarize NormalAccessCount = count() by Identity, AppDisplayName, bin(TimeGenerated, 1d)\n| summarize AvgDailyAccess = avg(NormalAccessCount), StdDevAccess = stdev(NormalAccessCount) by Identity, AppDisplayName;\n\n// Now look for recent access that deviates from the baseline\nSigninLogs\n| where TimeGenerated > ago(timeframe)\n| where AppDisplayName has_any ('Clinical', 'Patient', 'Trial', 'Research')\n| summarize RecentAccessCount = count() by Identity, AppDisplayName, IPAddress, bin(TimeGenerated, 1d)\n| join kind=inner baseline on Identity, AppDisplayName\n| extend ZScore = (RecentAccessCount - AvgDailyAccess) / iff(StdDevAccess == 0, 1, StdDevAccess)\n| where ZScore > deviation_threshold\n| extend RiskLevel = case(\n    ZScore > 5, 'Critical',\n    ZScore > 3, 'High',\n    'Medium')\n| extend AttackStage = 'Collection'\n| extend ATTACKTactic = 'TA0009'\n| extend ATTACKTechnique = 'T1213'\n| project TimeGenerated, Identity, AppDisplayName, IPAddress, RecentAccessCount, AvgDailyAccess, ZScore, RiskLevel, AttackStage, ATTACKTactic, ATTACKTechnique\n| order by ZScore desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "BioPharma" },
+                    { "name": "Tactic", "value": "Collection" },
+                    { "name": "DataSensitivity", "value": "Clinical Data" },
+                    { "name": "MITRE", "value": "TA0009:T1213" }
+                ]
+            },
+            {
+                "name": "BioPharma-Lab-Systems-Tampering",
+                "displayName": "Laboratory Systems Tampering Detection",
+                "description": "Detects potential tampering with laboratory systems that could compromise research integrity",
+                "body": "let timeframe = 7d;\nlet lab_systems = dynamic(['lab', 'instrument', 'chromatography', 'spectroscopy', 'analyzer', 'sequencer', 'microscope']);\n\n// Look for unusual administrative operations on lab systems\nDeviceEvents\n| where TimeGenerated > ago(timeframe)\n| where DeviceName has_any (lab_systems) or DeviceId has_any (lab_systems)\n| where ActionType has_any ('RegistryValueSet', 'RegistryKeyCreated', 'ProcessCreated', 'ServiceInstalled')\n| join kind=leftouter (\n    DeviceLogonEvents\n    | where TimeGenerated > ago(timeframe)\n    | where DeviceName has_any (lab_systems)\n    | where LogonType in ('Interactive', 'RemoteInteractive')\n    | project DeviceId, AccountDomain, AccountName, LogonTime = TimeGenerated\n) on DeviceId\n| where TimeGenerated > LogonTime\n| extend TimeSinceLogon = datetime_diff('minute', TimeGenerated, LogonTime)\n| extend IsAutomatedTask = iff(TimeSinceLogon < 5, 'Likely', 'Unlikely') // Automated tasks often run shortly after logon\n| extend EventDetails = parse_json(AdditionalFields)\n| extend CommandLine = tostring(EventDetails.CommandLine)\n| where isnotempty(CommandLine)\n| extend SuspiciousCommand = CommandLine has_any ('reg delete', 'netsh', 'cacls', 'wmic', 'taskkill', 'rundll32', 'regsvr32')\n| where SuspiciousCommand\n| extend AttackStage = 'Tampering'\n| extend ATTACKTactic = 'TA0005'\n| extend ATTACKTechnique = 'T1562'\n| project TimeGenerated, DeviceName, AccountDomain, AccountName, ActionType, CommandLine, TimeSinceLogon, IsAutomatedTask, AttackStage, ATTACKTactic, ATTACKTechnique\n| order by TimeGenerated desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "BioPharma" },
+                    { "name": "Tactic", "value": "Defense Evasion" },
+                    { "name": "ThreatCategory", "value": "Research Integrity" },
+                    { "name": "MITRE", "value": "TA0005:T1562" }
+                ]
+            },
+            {
+                "name": "BioPharma-IP-Database-Access-Anomaly",
+                "displayName": "IP Database Access Anomalies",
+                "description": "Detects anomalous access patterns to databases containing intellectual property information",
+                "body": "let timeframe = 7d;\nlet ip_databases = dynamic(['molecule', 'compound', 'patent', 'formula', 'research']);\n\n// Look for anomalous database access patterns\nlet normal_access = AzureDiagnostics\n| where TimeGenerated between(ago(30d)..ago(7d))\n| where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' or ResourceProvider == 'MICROSOFT.SQL'\n| where ResourceId has_any (ip_databases)\n| where Category == 'PostgreSQLLogs' or Category has 'SQLSecurityAuditEvents'\n| extend event_class_s = columnifexists('event_class_s', '')\n| extend statement_s = columnifexists('statement_s', '')\n| extend client_ip_s = columnifexists('client_ip_s', '')\n| extend user_s = columnifexists('user_s', '')\n| where isnotempty(client_ip_s) and isnotempty(user_s)\n| summarize NormalQueryCount = count() by bin(TimeGenerated, 1h), user_s\n| summarize AvgHourlyQueries = avg(NormalQueryCount), StdDev = stdev(NormalQueryCount) by user_s;\n\n// Now look for recent anomalous access\nAzureDiagnostics\n| where TimeGenerated > ago(timeframe)\n| where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' or ResourceProvider == 'MICROSOFT.SQL'\n| where ResourceId has_any (ip_databases)\n| where Category == 'PostgreSQLLogs' or Category has 'SQLSecurityAuditEvents'\n| extend event_class_s = columnifexists('event_class_s', '')\n| extend statement_s = columnifexists('statement_s', '')\n| extend client_ip_s = columnifexists('client_ip_s', '')\n| extend user_s = columnifexists('user_s', '')\n| where isnotempty(client_ip_s) and isnotempty(user_s)\n| summarize QueryDetails = make_set(statement_s, 5), RecentQueryCount = count() by bin(TimeGenerated, 1h), user_s, client_ip_s\n| join kind=inner normal_access on user_s\n| extend ZScore = (RecentQueryCount - AvgHourlyQueries) / iff(StdDev == 0, 1, StdDev)\n| where ZScore > 3.0\n| extend RiskLevel = case(\n    ZScore > 5, 'Critical',\n    ZScore > 4, 'High',\n    'Medium')\n| extend DataExfiltrationRisk = iff(RecentQueryCount > 100, 'High', 'Medium')\n| extend AttackStage = 'Collection'\n| extend ATTACKTactic = 'TA0009'\n| extend ATTACKTechnique = 'T1213.003'\n| project TimeGenerated, user_s, client_ip_s, RecentQueryCount, AvgHourlyQueries, ZScore, QueryDetails, RiskLevel, DataExfiltrationRisk, AttackStage, ATTACKTactic, ATTACKTechnique\n| order by ZScore desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "BioPharma" },
+                    { "name": "Tactic", "value": "Collection" },
+                    { "name": "DataSensitivity", "value": "Intellectual Property" },
+                    { "name": "MITRE", "value": "TA0009:T1213.003" }
+                ]
+            },
+            {
+                "name": "BioPharma-Regulatory-Document-Access",
+                "displayName": "Sensitive Regulatory Document Access",
+                "description": "Detects unusual access to regulatory and compliance documents in a bio-pharma environment",
+                "body": "let timeframe = 7d;\nlet regulatoryKeywords = dynamic(['regulatory', 'compliance', 'FDA', 'EMA', 'submission', 'approval', 'GxP', 'validation', 'audit']);\n\n// Detect unusual access to regulatory documents\nOffice365\n| where TimeGenerated > ago(timeframe)\n| where Operation in ('FileDownloaded', 'FileAccessed')\n| where OfficeObjectId has_any (regulatoryKeywords) or SourceFileName has_any (regulatoryKeywords)\n| summarize DocumentCount = count(), DocumentList = make_set(OfficeObjectId, 10) by UserId, ClientIP\n| join kind=leftouter (\n    SigninLogs\n    | where TimeGenerated > ago(timeframe)\n    | where UserPrincipalName != \"\"\n    | extend UserId = UserPrincipalName\n    | extend Country = tostring(LocationDetails.countryOrRegion)\n    | extend City = tostring(LocationDetails.city)\n    | project UserId, IPAddress, Country, City, UserAgent\n) on UserId\n| join kind=leftouter (\n    AuditLogs\n    | where TimeGenerated > ago(30d)\n    | where OperationName has_any ('role', 'permission', 'access')\n    | extend UserId = tostring(InitiatedBy.user.userPrincipalName)\n    | where isnotempty(UserId)\n    | project UserId, Operation = OperationName\n) on UserId\n| extend HasRecentPermissionChange = iff(isnotempty(Operation), true, false)\n| extend RiskScore = iff(HasRecentPermissionChange and DocumentCount > 5, 80, iff(DocumentCount > 10, 60, 40))\n| extend AttackStage = 'Collection'\n| extend ATTACKTactic = 'TA0009'\n| extend ATTACKTechnique = 'T1213'\n| project TimeGenerated, UserId, ClientIP, IPAddress, Country, City, DocumentCount, DocumentList, HasRecentPermissionChange, RiskScore, AttackStage, ATTACKTactic, ATTACKTechnique\n| order by RiskScore desc, DocumentCount desc",
+                "category": "Security",
+                "tags": [
+                    { "name": "Industry", "value": "BioPharma" },
+                    { "name": "Tactic", "value": "Collection" },
+                    { "name": "DataSensitivity", "value": "Regulatory" },
+                    { "name": "MITRE", "value": "TA0009:T1213" }
+                ]
+            }
+        ],
+        "selectedQueries": "[if(equals(parameters('industryVertical'), 'Healthcare'), variables('healthcareQueries'), if(equals(parameters('industryVertical'), 'Financial'), variables('financialQueries'), if(equals(parameters('industryVertical'), 'Government'), variables('governmentQueries'), if(equals(parameters('industryVertical'), 'BioPharma'), variables('bioPharmaQueries'), json('[]')))))]"
     },
     "resources": [
         {
