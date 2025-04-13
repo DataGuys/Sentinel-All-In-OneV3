@@ -385,35 +385,26 @@
                 }
             }
         },
-        {
-            "name": "queryPackDeployment",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "dependsOn": [
-                "workspaceCreation"
-            ],
-            "resourceGroup": "[parameters('rgName')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[uri(variables('artifacts_location'), '/LinkedTemplates/queryPacks.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "workspaceName": {
-                        "value": "[parameters('workspaceName')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "queryPackName": {
-                        "value": "[concat('QueryPack-', parameters('industryVertical'), '-', parameters('workspaceName'))]"
-                    },
-                    "industryVertical": {
-                        "value": "[parameters('industryVertica
-                            "enableSolutionsEssentials": {
-                        "value": "[replace(replace(string(parameters('enableSolutionsEssentials')),'[',''),']','')]"
-                    },
+       "queryPackDeployment": {
+    "name": "queryPackDeployment",
+    "type": "Microsoft.Resources/deployments",
+    "apiVersion": "2021-04-01",
+    "dependsOn": ["workspaceCreation"],
+    "resourceGroup": "[parameters('rgName')]",
+    "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+            "uri": "[uri(variables('artifacts_location'), '/queryPacks.json')]",
+            "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "workspaceName": {"value": "[parameters('workspaceName')]"},
+            "location": {"value": "[parameters('location')]"},
+            "queryPackName": {"value": "[concat('QueryPack-', parameters('industryVertical'), '-', parameters('workspaceName'))]"},
+            "industryVertical": {"value": "[parameters('industryVertical')]"}
+        }
+    }
+},
                     "enableSolutionsTraining": {
                         "value": "[replace(replace(string(parameters('enableSolutionsTraining')),'[',''),']','')]"
                     },
