@@ -203,7 +203,12 @@
         "dataConnectorsKind": "[parameters('enableDataConnectors')]",
         "tenantId": "[subscription().tenantId]",
         "subscriptionGuid": "[subscription().subscriptionId]",
-        "defaultRoleGuid": "[guid(subscription().id, parameters('workspaceName'))]"
+        "defaultRoleGuid": "[guid(subscription().id, parameters('workspaceName'))]",
+        "severityLevelsString": "[if(empty(parameters('severityLevels')), '', join(',', parameters('severityLevels')))]",
+        "enableDataConnectorsString": "[if(empty(parameters('enableDataConnectors')), '', join(',', parameters('enableDataConnectors')))]",
+        "enableSolutions1PString": "[if(empty(parameters('enableSolutions1P')), '', join(',', parameters('enableSolutions1P')))]",
+        "enableSolutionsEssentialsString": "[if(empty(parameters('enableSolutionsEssentials')), '', join(',', parameters('enableSolutionsEssentials')))]",
+        "enableSolutionsTrainingString": "[if(empty(parameters('enableSolutionsTraining')), '', join(',', parameters('enableSolutionsTraining')))]"
     },
     "resources": [
         {
@@ -224,7 +229,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/workspace.json')]",
+                    "uri": "[concat(variables('artifacts_location'), '/LinkedTemplates/workspace.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -237,11 +242,11 @@
                     "dailyQuota": {
                         "value": "[parameters('dailyQuota')]"
                     },
-                    "standardTierRetention": {
+                    "dataRetention": {
                         "value": "[parameters('standardTierRetention')]"
                     },
-                    "enableMultiTier": {
-                        "value": "[parameters('enableMultiTier')]"
+                    "immediatePurgeDataOn30Days": {
+                        "value": true
                     },
                     "capacityReservation": {
                         "value": "[parameters('capacityReservation')]"
@@ -293,7 +298,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('artifacts_location'), '/dataConnectors.json')]",
+                    "uri": "[concat(variables('artifacts_location'), '/LinkedTemplates/dataConnectors.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -311,6 +316,9 @@
                     },
                     "location": {
                         "value": "[parameters('location')]"
+                    },
+                    "subscriptionId": {
+                        "value": "[variables('subscriptionGuid')]"
                     },
                     "entraIDTier": {
                         "value": "[parameters('entraIDTier')]"
@@ -375,10 +383,10 @@
                         "value": "[parameters('workspaceName')]"
                     },
                     "dataConnectorsList": {
-                        "value": "[join(',', parameters('enableDataConnectors'))]"
+                        "value": "[variables('enableDataConnectorsString')]"
                     },
                     "severityLevels": {
-                        "value": "[join(',', parameters('severityLevels'))]"
+                        "value": "[variables('severityLevelsString')]"
                     },
                     "roleGuid": {
                         "value": "[variables('defaultRoleGuid')]"
@@ -406,19 +414,19 @@
                         "value": "[parameters('workspaceName')]"
                     },
                     "enableSolutions1P": {
-                        "value": "[join(',', parameters('enableSolutions1P'))]"
+                        "value": "[variables('enableSolutions1PString')]"
                     },
                     "enableSolutionsEssentials": {
-                        "value": "[join(',', parameters('enableSolutionsEssentials'))]"
+                        "value": "[variables('enableSolutionsEssentialsString')]"
                     },
                     "enableSolutionsTraining": {
-                        "value": "[join(',', parameters('enableSolutionsTraining'))]"
+                        "value": "[variables('enableSolutionsTrainingString')]"
                     },
                     "enableAlerts": {
                         "value": "[parameters('enableScheduledAlerts')]"
                     },
                     "severityLevels": {
-                        "value": "[join(',', parameters('severityLevels'))]"
+                        "value": "[variables('severityLevelsString')]"
                     },
                     "location": {
                         "value": "[parameters('location')]"
